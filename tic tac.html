@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TIC TAC TOE</title>
+  <style>
+    body {
+      background-color: #fbf1f1; /* Set background color */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    #container {
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Add shadow to container */
+      padding: 20px;
+      background-color: white;
+    }
+
+    #tic-tac-title {
+      font-size: 26px;
+      font-weight: bold;
+      margin-bottom: 24px;
+      margin-top: 35px;
+      color:rgb(25, 5, 254);
+      text-shadow: 1px 1px 0px;
+    }
+
+    #turn-message {
+      font-weight: bold;
+      margin-bottom: 5px;
+      font-size: 20px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    #sound-control {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-gap: 5px;
+      margin-bottom: 20px;
+    }
+
+    .cell {
+      width: 100px;
+      height: 100px;
+      font-size: 24px;
+      text-align: center;
+      line-height: 100px;
+      border: 2px solid #000;
+      cursor: pointer;
+    }
+
+    .message-container {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    #win-message, #draw-message {
+      margin-top: 20px;
+      font-weight: bold;
+      color: rgb(4, 4, 253);
+      margin-left: 24px;
+      font-size: 24px;
+      text-shadow: 1px 1px 0px;
+    }
+
+    #player-modes {
+      margin-bottom: 10px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      text-align: justify;
+    }
+
+    #win-counts {
+      text-align: right;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); 
+    }
+
+    #play-again {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+      text-shadow: 1px 1px 0px;
+    }
+
+    #play-again:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+<div id="container">
+  <h1 id="tic-tac-title">TIC TAC TOE</h1>
+
+  <div id="turn-message">It's X's Turn</div>
+
+  <div id="sound-control">
+    <label for="sound-toggle">Sound: </label>
+    <input type="checkbox" id="sound-toggle" checked onchange="toggleSound()">
+  </div>
+
+  <div id="board"></div>
+
+  <div id="player-modes">
+    <input type="radio" id="friend-mode" name="player-mode" value="friend" onclick="selectPlayerMode('friend')">
+    <label for="friend-mode">Play with a Friend</label><br>
+    <input type="radio" id="computer-mode" name="player-mode" value="computer" onclick="selectPlayerMode('computer')">
+    <label for="computer-mode">Play with the Computer</label>
+  </div>
+
+  <div id="win-counts">
+    <p><span id="player-x-name">Player X</span> Wins: <span id="player-x-win-count">0</span></p>
+    <p><span id="player-o-name">Player O</span> Wins: <span id="player-o-win-count">0</span></p>
+    <p>Games Over: <span id="draw-count">0</span></p>
+  </div>
+</div>
+
+<div id="message-container" class="message-container" style="display: none;">
+  <p id="win-message" style="display: none;">Player <span id="winner"></span> Wins! 😎</p>
+  <p id="draw-message" style="display: none;">Games Over! 😢</p>
+  <button id="play-again" onclick="resetGame()">Play Again</button>
+</div>
+
+<audio id="win-sound" src="mixkit-animated-small-group-applause-523.wav" preload="auto"></audio>
+<audio id="draw-sound" src="mixkit-arcade-score-interface-217.wav" preload="auto"></audio>
+<audio id="move-sound" src="mixkit-arcade-game-jump-coin-216.wav" preload="auto"></audio>
+<audio id="play-again-sound" src="mixkit-arcade-game-jump-coin-216.wav" preload="auto"></audio>
+
+<script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
+<script>
+    const board = document.getElementById('board');
+    const messageContainer = document.getElementById('message-container');
+    const winMessage = document.getElementById('win-message');
+    const drawMessage = document.getElementById('draw-message');
+    const winnerSpan = document.getElementById('winner');
+    const soundToggle = document.getElementById('sound-toggle');
+    const playerXWinCount = document.getElementById('player-x-win-count');
+    const playerOWinCount = document.getElementById('player-o-win-count');
+    const drawCount = document.getElementById('draw-count');
+    const turnMessage = document.getElementById('turn-message');
+    const playerXNameSpan = document.getElementById('player-x-name');
+    const playerONameSpan = document.getElementById('player-o-name');
+    let currentPlayer = 'X';
+    let boardState = ['', '', '', '', '', '', '', '', ''];
+    let gameActive = false;
+    let winsX = 0;
+    let winsO = 0;
+    let draws = 0;
+    let playerOption;
+    let playerXName = 'Player X';
+    let playerOName = 'Player O';
+  
+    function handleClick(index) {
+      if (!gameActive || boardState[index] !== '') return;
+  
+      boardState[index] = currentPlayer;
+      document.getElementById(`cell-${index}`).innerText = currentPlayer;
+      playMoveSound();
+  
+      if (checkWin()) {
+        gameActive = false;
+        updateWinCount();
+        displayWinMessage();
+        triggerConfetti();
+      } else if (boardState.every(cell => cell !== '')) {
+        gameActive = false;
+        draws++;
+        drawCount.innerText = draws;
+        displayDrawMessage();
+      } else {
+        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+        turnMessage.textContent = `It's ${currentPlayer === 'X' ? playerXName : playerOName}'s Turn`;
+        if (currentPlayer === 'O' && playerOption === 'computer') {
+          setTimeout(computerMove, 500);
+        }
+      }
+    }
+  
+    function computerMove() {
+      let emptyCells = boardState.map((cell, index) => cell === '' ? index : null).filter(cell => cell !== null);
+      let randomIndex = Math.floor(Math.random() * emptyCells.length);
+      let selectedCell = emptyCells[randomIndex];
+      handleClick(selectedCell);
+    }
+  
+    function playMoveSound() {
+      if (soundToggle.checked) {
+        const audio = new Audio('mixkit-arcade-game-jump-coin-216.wav');
+        audio.play();
+      }
+    }
+  
+    function checkWin() {
+      const winConditions = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+        [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+        [0, 4, 8], [2, 4, 6]             // Diagonals
+      ];
+  
+      return winConditions.some(condition => {
+        const [a, b, c] = condition;
+        return boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c];
+      });
+    }
+  
+    function displayWinMessage() {
+      messageContainer.style.display = 'flex';
+      board.style.display = 'none';
+      winMessage.style.display = 'block';
+      winnerSpan.innerText = currentPlayer === 'X' ? playerXName : playerOName;
+      if (soundToggle.checked) {
+        document.getElementById('win-sound').play();
+      }
+      turnMessage.textContent = '';
+    }
+  
+    function displayDrawMessage() {
+      messageContainer.style.display = 'flex';
+      board.style.display = 'none';
+      drawMessage.style.display = 'block';
+      if (soundToggle.checked) {
+        document.getElementById('draw-sound').play();
+      }
+      turnMessage.textContent = '';
+    }
+  
+    function resetGame() {
+      currentPlayer = 'X';
+      boardState = ['', '', '', '', '', '', '', '', ''];
+      gameActive = true;
+      messageContainer.style.display = 'none';
+      winMessage.style.display = 'none';
+      drawMessage.style.display = 'none';
+      board.style.display = 'grid';
+      document.querySelectorAll('.cell').forEach(cell => cell.style.pointerEvents = 'auto');
+      turnMessage.textContent = `It's ${currentPlayer === 'X' ? playerXName : playerOName}'s Turn`;
+      initializeBoard();
+  
+      if (soundToggle.checked) {
+        document.getElementById('play-again-sound').play();
+      }
+    }
+  
+    function toggleSound() {
+      if (soundToggle.checked) {
+        document.getElementById('win-sound').muted = false;
+        document.getElementById('draw-sound').muted = false;
+        document.getElementById('play-again-sound').muted = false;
+      } else {
+        document.getElementById('win-sound').muted = true;
+        document.getElementById('draw-sound').muted = true;
+        document.getElementById('play-again-sound').muted = true;
+      }
+    }
+  
+    function updateWinCount() {
+      if (currentPlayer === 'X') {
+        winsX++;
+        playerXWinCount.innerText = winsX;
+      } else {
+        winsO++;
+        playerOWinCount.innerText = winsO;
+      }
+    }
+  
+    function initializeBoard() {
+      board.innerHTML = '';
+      for (let i = 0; i < 9; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.id = `cell-${i}`;
+        cell.addEventListener('click', () => handleClick(i));
+        board.appendChild(cell);
+      }
+    }
+  
+    function triggerConfetti() {
+      const jsConfetti = new JSConfetti();
+      jsConfetti.addConfetti({
+        emojis: ['🎉', '⚡️', '💥', '✨', '💫', '🌟', '🎉', '⚡️', '💥', '✨', '💫', '🌟'],
+      });
+    }
+  
+    function selectPlayerMode(option) {
+      playerOption = option;
+      if (option === 'friend') {
+        const playerXInput = prompt('Enter Player X Name:');
+        const playerOInput = prompt('Enter Player O Name:');
+        playerXName = playerXInput ? playerXInput : 'X';
+        playerOName = playerOInput ? playerOInput : 'O';
+      } else {
+        playerXName = prompt('Enter Player X Name:') || 'X';
+        playerOName = 'Computer';
+      }
+      // Reset win counts and draw count only when changing player mode
+      winsX = 0;
+      winsO = 0;
+      draws = 0;
+      playerXNameSpan.innerText = "Player " +playerXName;
+      playerONameSpan.innerText = "Player " +playerOName;
+      playerXWinCount.innerText = winsX;
+      playerOWinCount.innerText = winsO;
+      drawCount.innerText = draws;
+      resetGame();
+    }
+  
+    initializeBoard();
+  </script>
+</body>
+</html>
