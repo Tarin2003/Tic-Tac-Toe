@@ -13,7 +13,9 @@ A simple and interactive Tic-Tac-Toe game built with HTML, CSS, and JavaScript. 
 4. Dynamic sound effects for moves, wins, and Game Over, with the option to mute.
 
 5. Confetti celebration when a player wins!.
+   
+6. Option to reset the game or change player modes.
 
- 6.Option to reset the game or change player modes.
+ 
 
 
