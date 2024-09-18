@@ -1,4 +1,4 @@
-# TIC-TAC-TOE Game
+# TIC TAC TOE Game
 
 A simple and interactive Tic-Tac-Toe game built with HTML, CSS, and JavaScript. Players can enjoy the game in two modes: Play with a friend or play with the computer. The game tracks wins and Game Over, has sound effects, and features a fun confetti animation for each win. You can reset the game and play again easily. Players can enter their names, and if no names are provided, the default 'Player X' and 'Player O' will be used. 
 
